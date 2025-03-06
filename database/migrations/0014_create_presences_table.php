@@ -11,12 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('assignments', function (Blueprint $table) {
+        Schema::create('presences', function (Blueprint $table) {
             $table->id();
-            $table->string('title');
-            $table->foreignId('course_id')->constrained('courses')->onDelete('cascade');
-            $table->text('description')->nullable();
-            $table->date('due_date');
+            $table->foreignId('user_id')->constrained('users')->onDelete('cascade'); // Tambahkan foreign key constraint
+            $table->foreignId('task_id')->constrained('tasks')->onDelete('cascade');
+            $table->string('qr_code');
+            $table->timestamp('presence_at')->nullable();
             $table->timestamps();
         });
     }
@@ -26,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('assignments');
+        Schema::dropIfExists('presences');
     }
 };
