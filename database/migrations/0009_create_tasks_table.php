@@ -11,11 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('presences', function (Blueprint $table) {
+        Schema::create('tasks', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained('users')->onDelete('cascade'); // Tambahkan foreign key constraint
-            $table->string('qr_code');
-            $table->boolean('is_present')->default(false);
+            $table->string('title');
+            $table->enum('type', ['submission', 'presence']); // Can be expanded for quizzes, exams, etc.
+            $table->foreignId('course_id')->constrained('courses')->onDelete('cascade');
+            $table->text('description')->nullable();
+            $table->date('due_date');
             $table->timestamps();
         });
     }
@@ -25,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('presences');
+        Schema::dropIfExists('tasks');
     }
 };
