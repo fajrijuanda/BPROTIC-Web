@@ -45,7 +45,7 @@ class LoginController extends Controller
         }
 
         // 4. Load relasi role
-        $user = User::getUserWithRole($user->id);
+        $user = User::getUserWithRelations($user->id);
 
         // 5. Buat token
         $token = $user->createToken('authToken')->plainTextToken;

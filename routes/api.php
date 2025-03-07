@@ -35,7 +35,5 @@ Route::get('/sanctum/csrf-cookie', function () {
     return response()->noContent();
 });
 
-
-
 // ✅ Tambahkan Route untuk Logout
 Route::post('/logout', [LoginController::class, 'logout'])->middleware('auth:sanctum');

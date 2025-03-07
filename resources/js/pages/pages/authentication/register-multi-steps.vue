@@ -326,7 +326,7 @@ const onSubmit = async () => {
       interest_id: form.value.selectedInterest,
       sub_interest_id: form.value.selectedSoftware,
       reason: form.value.reason,
-      role: "client",
+      role: "admin",
     };
 
     const response = await axios.post("/api/register", requestData, {

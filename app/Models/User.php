@@ -12,8 +12,9 @@ class User extends Authenticatable
     use HasFactory, HasApiTokens, Notifiable;
 
     protected $fillable = [
-        'username', // Gantilah 'name' dengan 'username' sesuai perubahan database
+        'username',
         'email',
+        'email_verified_at',
         'password',
         'role_id',
         'is_active',
@@ -34,13 +35,7 @@ class User extends Authenticatable
     {
         return $this->belongsTo(Role::class, 'role_id');
     }
-    
-    
-    public static function getUserWithRole($userId)
-    {
-        return self::with('role')->find($userId);
-    }
-    
+
     // Relasi ke Profile
     public function profile()
     {
@@ -57,5 +52,26 @@ class User extends Authenticatable
     public function userDivision()
     {
         return $this->hasOne(UserDivision::class);
+    }
+
+    public function getAvatarAttribute()
+    {
+        return $this->profile && $this->profile->avatar
+            ? asset($this->profile->avatar)  // 🔹 Path lengkap ke avatar
+            : asset('images/avatars/avatar-1.png'); // 🔹 Gunakan default avatar jika tidak ada
+    }
+
+    /**
+     * 🔹 Ambil user beserta semua relasi terkait
+     * Termasuk: role, profile (avatar), studentInterest, userDivision
+     */
+    public static function getUserWithRelations($userId)
+    {
+        return self::with([
+            'role',
+            'profile',
+            'studentInterest',
+            'userDivision'
+        ])->find($userId);
     }
 }
