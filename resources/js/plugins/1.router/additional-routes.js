@@ -8,14 +8,14 @@ export const redirects = [
     path: '/',
     name: 'index',
     redirect: to => {
-      // TODO: Get type from backend
+      // Ambil user data dari cookie atau state management (Pinia/Vuex)
       const userData = useCookie('userData')
-      const userRole = userData.value?.role
-      if (userRole === 'admin')
-        return { name: 'dashboards-crm' }
-      if (userRole === 'client')
-        return { name: 'access-control' }
-      
+      const userRoleId = userData.value?.role_id // Ambil role_id dari userData
+
+      // Redirect berdasarkan role_id
+      if (userRoleId === 1) return { name: 'dashboards-crm' } // Admin
+      if (userRoleId === 2 ||userRoleId === 3) return { name: 'apps-academy-dashboard' } // Student
+
       return { name: 'login', query: to.query }
     },
   },

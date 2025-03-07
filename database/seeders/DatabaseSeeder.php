@@ -15,6 +15,7 @@ class DatabaseSeeder extends Seeder
             SubInterestSeeder::class,
             DivisionSeeder::class,
             SubDivisionSeeder::class,
+            UserSeeder::class,
         ]);
     }
 }

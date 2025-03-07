@@ -19,6 +19,7 @@ return new class extends Migration {
             $table->string('avatar');
             $table->integer('nim')->unique();
             $table->string('class');
+            $table->string('mobile');
             $table->foreignId('major_id')->constrained('majors')->onDelete('cascade'); // Pastikan major juga punya constraint
             $table->timestamps();
         });

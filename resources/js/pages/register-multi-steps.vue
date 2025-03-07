@@ -8,20 +8,20 @@ import registerMultiStepBgDark from '@images/pages/register-multi-step-bg-dark.p
 import registerMultiStepBgLight from '@images/pages/register-multi-step-bg-light.png'
 import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
+import { useRouter } from 'vue-router';
 import {
   requiredValidator,
-  emailValidator,
-  passwordValidator,
-  confirmedValidator,
   regexValidator,
   integerValidator,
   lengthValidator,
-} from '@core/utils/validators' // Sesuaikan path
-// import Swal from "sweetalert2/dist/sweetalert2.js";
+} from '@core/utils/validators'
+import { useCookies } from "vue3-cookies";
 
 const registerMultiStepBg = useGenerateImageVariant(registerMultiStepBgLight, registerMultiStepBgDark)
 const Swal = (await import("sweetalert2")).default;
 
+const { cookies } = useCookies();
+const router = useRouter();
 definePage({
   meta: {
     layout: 'blank',
@@ -30,8 +30,6 @@ definePage({
 })
 
 const currentStep = ref(0)
-const isPasswordVisible = ref(false)
-const isConfirmPasswordVisible = ref(false)
 const registerMultiStepIllustration = useGenerateImageVariant(registerMultiStepIllustrationLight, registerMultiStepIllustrationDark)
 const majors = ref([])
 const errors = ref({
@@ -45,27 +43,8 @@ const errors = ref({
   class: [],
   major_id: [],
   mobile: [],
-  reason: [], 
+  reason: [],
 });
-
-
-// Fetch data jurusan dari API saat komponen dimuat
-onMounted(async () => {
-  try {
-    const response = await axios.get('/api/majors')
-
-    // Pastikan response data adalah array
-    if (Array.isArray(response.data)) {
-      majors.value = response.data
-    } else {
-      console.error('Invalid API response format:', response.data)
-    }
-  } catch (error) {
-    console.error('Error fetching majors:', error)
-  }
-})
-
-
 
 const radioContent = [
   {
@@ -88,7 +67,6 @@ const radioContent = [
   },
 ];
 
-
 const softwareOptions = [
   { title: 'PHP Native', value: 1 },
   { title: 'Laravel', value: 2 },
@@ -96,15 +74,9 @@ const softwareOptions = [
   { title: 'UI/UX', value: 4 },
 ];
 
-
 const showSoftwareOptions = computed(() => form.value.selectedInterest === '2')
 
 const items = [
-  {
-    title: 'Account',
-    subtitle: 'Account Details',
-    icon: 'tabler-file-analytics',
-  },
   {
     title: 'Personal',
     subtitle: 'Enter Information',
@@ -124,34 +96,14 @@ const form = ref({
   confirmPassword: "",
   firstName: "",
   lastName: "",
-  mobile: "",
   class: "",
   major_id: null,
   nim: "",
-  selectedInterest: null, // Harus null agar tidak mengirimkan "0"
+  mobile: "",
+  selectedInterest: null,
   reason: "",
-  selectedSoftware: null, // Jika tidak ada sub interest, biarkan null
+  selectedSoftware: null, // 
 });
-
-const rulesUsername = [
-  requiredValidator,
-  value => regexValidator(value, '^.{1,15}$') || 'Maksimal 15 karakter'
-]
-
-const rulesEmail = [
-  requiredValidator,
-  emailValidator
-]
-
-const rulesPassword = [
-  requiredValidator,
-  passwordValidator
-]
-
-const rulesConfirmPassword = [
-  requiredValidator,
-  value => confirmedValidator(value, form.value.password) || 'Konfirmasi password tidak cocok'
-]
 
 const rulesFirstName = [
   requiredValidator,
@@ -187,25 +139,6 @@ const rulesReason = [
   requiredValidator,
   value => regexValidator(value, '^.{10,255}$') || 'Min 10 & max 255 karakter'
 ]
-
-
-// // Validasi password
-// const passwordErrors = computed(() => {
-//   if (!form.value.password) return []
-//   const errors = []
-//   if (!/[a-z]/.test(form.value.password)) errors.push('Minimal 1 huruf kecil')
-//   if (!/[A-Z]/.test(form.value.password)) errors.push('Minimal 1 huruf besar')
-//   if (!/\d/.test(form.value.password)) errors.push('Minimal 1 angka')
-//   if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(form.value.password)) errors.push('Minimal 1 simbol')
-//   return errors
-// })
-
-// // Validasi konfirmasi password
-// const confirmPasswordErrors = computed(() => {
-//   if (!form.value.confirmPassword) return []
-//   if (form.value.password !== form.value.confirmPassword) return ['Password tidak cocok']
-//   return []
-// })
 
 const isStepValid = stepIndex => {
   switch (stepIndex) {
@@ -245,78 +178,49 @@ const validateStep = async () => {
   if (valid) currentStep.value++
 }
 
-// const validateStep = () => {
-//   stepErrors.value = {} // Reset error sebelum validasi ulang
+// Fetch data jurusan dari API saat komponen dimuat
+onMounted(async () => {
+  try {
+    const response = await axios.get('/api/majors');
 
-//   if (currentStep.value === 0) {
-//     // Validasi Username
-//     if (!form.value.username) {
-//       stepErrors.value.username = "Username wajib diisi"
-//     } else if (form.value.username.length > 15) {
-//       stepErrors.value.username = "Username maksimal 15 karakter"
-//     }
+    // Pastikan response data adalah array sebelum memasukkan ke `majors.value`
+    if (Array.isArray(response.data)) {
+      majors.value = response.data;
+    } else {
+      console.error('Invalid API response format:', response.data);
+    }
+  } catch (error) {
+    console.error('❌ Error fetching majors:', error);
+  }
 
-//     // Validasi Email
-//     if (!form.value.email) {
-//       stepErrors.value.email = "Email wajib diisi"
-//     } else if (!form.value.email.includes("@")) {
-//       stepErrors.value.email = "Email harus mengandung @"
-//     }
+  const urlParams = new URLSearchParams(window.location.search);
+  const username = urlParams.get("username");
+  const email = urlParams.get("email");
 
-//     // Validasi Password
-//     if (!form.value.password) stepErrors.value.password = "Password wajib diisi"
-//     if (!form.value.confirmPassword) stepErrors.value.confirmPassword = "Konfirmasi password wajib diisi"
+  if (username && email) {
+    localStorage.setItem("socialUserData", JSON.stringify({ username, email }));
+  }
 
-//     // Cek aturan password
-//     if (passwordErrors.value.length > 0) stepErrors.value.password = passwordErrors.value.join(", ")
-//     if (confirmPasswordErrors.value.length > 0) stepErrors.value.confirmPassword = confirmPasswordErrors.value.join(", ")
+  // Ambil dari localStorage jika tidak ada di URL
+  const savedData = JSON.parse(localStorage.getItem("socialUserData") || "{}");
+  if (savedData.username && savedData.email) {
+    form.value.username = savedData.username;
+    form.value.email = savedData.email;
+  }
 
-//     // Jika ada error, tidak lanjut ke step berikutnya
-//     if (Object.keys(stepErrors.value).length > 0) return
-//   }
-
-//   if (currentStep.value === 1) {
-//     if (!form.value.firstName) stepErrors.value.firstName = "Nama depan wajib diisi";
-//     if (!form.value.lastName) stepErrors.value.lastName = "Nama belakang wajib diisi";
-//     if (!form.value.nim) stepErrors.value.nim = "NIM wajib diisi";
-//     else if (!/^\d+$/.test(form.value.nim)) stepErrors.value.nim = "NIM harus berupa angka";
-
-//     if (!form.value.class) stepErrors.value.class = "Kelas wajib diisi";
-//     if (!form.value.major_id) stepErrors.value.major_id = "Jurusan wajib dipilih";
-//     if (!form.value.mobile) stepErrors.value.mobile = "Nomor HP wajib diisi";
-
-//     if (Object.keys(stepErrors.value).length > 0) return;
-//   }
-
-
-//   if (currentStep.value === 2) {
-//     // Validasi step 2 (Interest)
-//     if (!form.value.reason) stepErrors.value.reason = "Alasan wajib diisi"
-//     if (form.value.selectedInterest === '99' && !form.value.selectedSoftware) {
-//       stepErrors.value.selectedSoftware = "Pilih software yang diinginkan"
-//     }
-//     if (form.value.selectedSoftware) {
-//       requestData.sub_interest_id = form.value.selectedSoftware; // Simpan ID, bukan nama
-//     }
-//     if (Object.keys(stepErrors.value).length > 0) return
-//   }
-
-//   // Jika validasi lolos, lanjut ke step berikutnya
-//   currentStep.value++
-// }
-
-
-const formErrors = ref({}); // Menyimpan error dari backend
-
-// const alertRef = ref(null);
+});
 
 const onSubmit = async () => {
   try {
+    console.log("📌 Data sebelum dikirim:", form.value);
+
+    if (!form.value.username || !form.value.email) {
+      throw new Error("❌ Username dan Email harus diisi!");
+    }
+
     const requestData = {
       username: form.value.username,
       email: form.value.email,
-      password: form.value.password,
-      password_confirmation: form.value.confirmPassword,
       firstName: form.value.firstName,
       lastName: form.value.lastName,
       mobile: form.value.mobile,
@@ -326,51 +230,37 @@ const onSubmit = async () => {
       interest_id: form.value.selectedInterest,
       sub_interest_id: form.value.selectedSoftware,
       reason: form.value.reason,
-      role: "client",
     };
+
+    console.log("📤 Data yang dikirim ke API:", requestData);
 
     const response = await axios.post("/api/register", requestData, {
       headers: { "Content-Type": "application/json" },
     });
 
     if (response.data.success) {
-      // ✅ SweetAlert sukses tanpa tombol OK, auto-close dalam 2 detik
-      Swal.fire({
-        title: "Registrasi Berhasil!",
-        icon: "success",
-        timer: 2000,
-        showConfirmButton: false,
-        allowOutsideClick: false,
-      });
+      cookies.set("accessToken", response.data.token, "1h");
+      cookies.set("userData", JSON.stringify({ ...requestData, role: "client" }), "1h");
 
-      // ⏳ Redirect ke halaman login setelah 2 detik
-      setTimeout(() => {
-        window.location.href = "/login";
-      }, 2000);
+      console.log("✅ Registrasi berhasil, redirect ke:", response.data.redirect);
+      await router.replace(response.data.redirect); // ✅ Gunakan router yang sudah didefinisikan
     }
   } catch (error) {
-    console.error("Error response:", error.response?.data || error.message);
+    let errorMessage = error.response?.data?.message || "Terjadi kesalahan";
 
-    if (error.response && error.response.status === 422) {
-      formErrors.value = error.response.data.errors;
-      const errorMessages = Object.values(error.response.data.errors).flat().join("\n");
-
-      // ❌ SweetAlert error dengan tombol OK
-      Swal.fire({
-        title: "Registrasi Gagal!",
-        text: errorMessages,
-        icon: "error",
-        confirmButtonText: "OK",
-      });
-    } else {
-      // ❌ SweetAlert error jika terjadi kesalahan sistem
-      Swal.fire({
-        title: "Terjadi Kesalahan!",
-        text: error.response?.data?.message || "Gagal melakukan registrasi.",
-        icon: "error",
-        confirmButtonText: "OK",
-      });
+    if (error.response?.status === 422) {
+      const errorDetails = Object.values(error.response.data.errors).flat().join("\n");
+      errorMessage = `Validasi gagal:\n${errorDetails}`;
     }
+
+    Swal.fire({
+      title: "Registrasi Gagal!",
+      text: errorMessage,
+      icon: "error",
+      confirmButtonText: "OK",
+    });
+
+    console.error("❌ Error saat registrasi:", error);
   }
 };
 
@@ -407,45 +297,6 @@ const onSubmit = async () => {
         <VWindow v-model="currentStep" class="disable-tab-transition" style="max-inline-size: 681px;">
           <VForm ref="refStepForm">
             <VWindowItem>
-              <h4 class="text-h4">
-                Account Information
-              </h4>
-              <p class="text-body-1 mb-6">
-                Enter Your Account Details
-              </p>
-
-              <VRow>
-                <VCol cols="12" md="6">
-                  <AppTextField v-model="form.username" label="Username" placeholder="Johndoe" :rules="rulesUsername"
-                    counter="15" prepend-inner-icon="tabler-user" />
-                </VCol>
-
-                <VCol cols="12" md="6">
-                  <AppTextField v-model="form.email" label="Email" placeholder="johndoe@email.com"
-                    :error-messages="errors.email" :rules="rulesEmail" prepend-inner-icon="tabler-mail" />
-                </VCol>
-
-                <VCol cols="12" md="6">
-                  <AppTextField v-model="form.password" label="Password" placeholder="············"
-                    :type="isPasswordVisible ? 'text' : 'password'"
-                    :append-inner-icon="isPasswordVisible ? 'tabler-eye-off' : 'tabler-eye'"
-                    @click:append-inner="isPasswordVisible = !isPasswordVisible" :error-messages="errors.password"
-                    :rules="rulesPassword" counter prepend-inner-icon="tabler-lock" />
-                </VCol>
-
-                <VCol cols="12" md="6">
-                  <AppTextField v-model="form.confirmPassword" label="Confirm Password" placeholder="············"
-                    :type="isConfirmPasswordVisible ? 'text' : 'password'"
-                    :append-inner-icon="isConfirmPasswordVisible ? 'tabler-eye-off' : 'tabler-eye'"
-                    @click:append-inner="isConfirmPasswordVisible = !isConfirmPasswordVisible"
-                    :error-messages="errors.confirmPassword" :rules="rulesConfirmPassword" counter
-                    prepend-inner-icon="tabler-lock" />
-                </VCol>
-              </VRow>
-
-            </VWindowItem>
-
-            <VWindowItem>
               <h4 class="text-h4">Personal Information</h4>
               <p>Enter Your Personal Information</p>
 
@@ -477,7 +328,7 @@ const onSubmit = async () => {
                 </VCol>
 
                 <VCol cols="12" md="6">
-                  <AppTextField v-model="form.mobile" type="number" label="Mobile" placeholder="08XX-XXXX-XXXX"
+                  <AppTextField v-model="form.mobile" type="text" label="Mobile" placeholder="08XX-XXXX-XXXX"
                     :error-messages="errors.mobile" :rules="rulesMobile" prepend-inner-icon="tabler-phone" />
                 </VCol>
               </VRow>
