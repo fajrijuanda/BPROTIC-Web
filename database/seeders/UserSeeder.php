@@ -42,7 +42,7 @@ class UserSeeder extends Seeder
             'first_name' => 'Fajri Yanuar Shiddiq',
             'last_name' => 'Juanda',
             'bio' => 'Admin of the system.',
-            'avatar' => 'default.png',
+            'avatar' => '1.png',
             'nim' => '22416255201102',
             'class' => 'IF22C',
             'major_id' => $majorId,
